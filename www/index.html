@@ -18,14 +18,21 @@
 				<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
 			</div>
 			<div>
-				部落战统计说明
-				1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
-				2) 最右侧的是最近战斗；
-				3) 正在进行的战斗未统计。
+				<p>排序：按杯数排序（与部落排序相同）</p>
+				<p>
+					部落战统计说明：
+					1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
+					2) 最右侧的是最近战斗；
+					3) 正在进行的战斗未统计。
+				</p>
 			</div>
 			<div class="row member-wrap" v-for="member in clan.members" :tag="member.tag">
 				<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
-					<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">{{ member.name }}</div>
+					<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
+						<b>{{ member.name }}</b>
+						({{ member.role }})
+						<span style="float: right;">{{ member.trophies }} 杯</span>
+					</div>
 				</div>
 				<div style="width: 100%; background-color: #ffe; border: solid 1px #ddb; margin-bottom: 15px;">
 					<div style="margin-left: 5px;">
@@ -41,8 +48,6 @@
 		<script type="text/babel">
 'use strict';
 $(document).ready(function() {
-	console.log(data.clan.members[0]);
-
 	document.title = data.clan.name;
 	var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
 	link.href = data.clan.badge.image;
@@ -69,7 +74,6 @@ $(document).ready(function() {
 					marks.push([cardsEarned, wins]);
 				});
 				marks.reverse();
-				console.log(marks);
 				var ctx = $(wrap).find('#myChart')[0].getContext('2d');
 				var myChart = new Chart(ctx, {
 					type: 'bar',
