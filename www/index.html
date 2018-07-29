@@ -15,17 +15,24 @@
 	<body>
 		<div class="container" id="app">
 			<div class="row">
-				<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
-			</div>
+				<div class="col">
+					<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
+					<p>排序：按杯数排序（与部落排序相同）</p>
+					<p>
+						部落战统计说明：
+						1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
+						2) 柱的高度是集卡日收集卡牌数量；
+						3) 最右侧的是最近战斗；
+						4) 未统计正在进行的战斗。
+					</p>
+					<p>
+						捐赠统计说明：
+						1) <span style="color: #0a0;">绿色</span>填充区域为捐赠数量，<span style="color: #00a;">蓝色</span>线条为请求捐赠数量；
+						2) 横坐标 0 表示现在，-7 表示 7 天前。
+					</p>
+					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎提 issue。</p>
+				</div>
 			<div>
-				<p>排序：按杯数排序（与部落排序相同）</p>
-				<p>
-					部落战统计说明：
-					1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
-					2) 最右侧的是最近战斗；
-					3) 正在进行的战斗未统计。
-				</p>
-			</div>
 			<div class="row member-wrap" v-for="member in clan.members" :tag="member.tag">
 				<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
 					<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
@@ -39,7 +46,13 @@
 						部落战统计
 					</div>
 					<div>
-						<canvas id="myChart" width="400" height="100"></canvas>
+						<canvas id="war-chart" width="400" height="100"></canvas>
+					</div>
+					<div style="margin-left: 5px;">
+						捐赠统计
+					</div>
+					<div>
+						<canvas id="donation-chart" width="400" height="130"></canvas>
 					</div>
 				</div>
 			</div>
@@ -74,7 +87,7 @@ $(document).ready(function() {
 					marks.push([cardsEarned, wins]);
 				});
 				marks.reverse();
-				var ctx = $(wrap).find('#myChart')[0].getContext('2d');
+				var ctx = $(wrap).find('#war-chart')[0].getContext('2d');
 				var myChart = new Chart(ctx, {
 					type: 'bar',
 					data: {
@@ -84,9 +97,9 @@ $(document).ready(function() {
 							data: marks.map(([cardsEarned, wins]) => { return cardsEarned; }),
 							backgroundColor: marks.map(([cardsEarned, wins]) => {
 								if (wins == 0)
-									return 'rgba(0, 0, 0, .1)';
+									return 'rgba(0, 0, 0, .2)';
 								else
-									return 'rgba(0, 255, 0, .1)';
+									return 'rgba(0, 255, 0, .2)';
 							}),
 							borderWidth: 2
 						}]
@@ -99,7 +112,69 @@ $(document).ready(function() {
 							yAxes: [{
 								ticks: {
 									beginAtZero: true,
-									max: 1700
+									max: 1700,
+									stepSize: 300
+								}
+							}],
+							xAxes: [{
+								ticks: {
+									display: false
+								}
+							}]
+						}
+					}
+				});
+				var num_day = 7;
+				var coords = [];
+				data.history.forEach(({time, clan}) => {
+					clan.members.forEach((his) => {
+						if (member.tag == his.tag) {
+							var delta = -(data.now - time) / 86400;
+							coords.push([
+								delta,
+								his.donations,
+								his.donationsReceived,
+							]);
+						}
+					});
+				});
+				ctx = $(wrap).find('#donation-chart')[0].getContext('2d');
+				myChart = new Chart(ctx, {
+					type: 'scatter',
+					data: {
+						datasets: [{
+								showLine: true,
+								label: '捐赠',
+								data: coords.map(([delta, donations, donationsReceived]) => {
+									return { x: delta, y: donations, };
+								}),
+								backgroundColor: 'rgba(0, 255, 0, .2)',
+								pointRadius: 0
+							}, {
+								showLine: true,
+								label: '请求捐赠',
+								data: coords.map(([delta, donations, donationsReceived]) => {
+									return { x: delta, y: donationsReceived, };
+								}),
+								backgroundColor: 'rgba(0, 0, 0, 0)',
+								borderColor: 'rgba(0, 0, 255, .6)',
+								borderWidth: 2,
+								pointRadius: 0
+							}]
+					},
+					options: {
+						scales: {
+							xAxes: [{
+								ticks: {
+									min: -7,
+									max: 0
+								}
+							}],
+							yAxes: [{
+								ticks: {
+									beginAtZero: true,
+									max: 1300,
+									stepSize: 200
 								}
 							}]
 						}
