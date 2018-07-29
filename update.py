@@ -43,7 +43,7 @@ def history_local():
     for t in all_t:
         if t < time.time() - 86400 * 14:
             continue
-        if len(ts) == 0 or t > ts[-1] + 10 * 60:
+        if len(ts) == 0 or t > ts[-1] + 9.5 * 60:
             ts.append(t)
 
     member_struct = {
