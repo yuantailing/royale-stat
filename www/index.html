@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title>RoyaleAPI</title>
+		<link rel="shortcut icon" href="favicon.ico">
+		<link rel="stylesheet" href="static/css/bootstrap.min.css">
+		<script src="static/js/jquery.min.js"></script>
+		<script src="static/js/vue.min.js"></script>
+		<script src="static/js/babel.min.js"></script>
+		<script src="static/js/Chart.min.js"></script>
+	</head>
+	<body>
+		<div class="container" id="app">
+			<div class="row">
+				<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
+			</div>
+			<div>
+				部落战统计说明
+				1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
+				2) 最右侧的是最近战斗；
+				3) 正在进行的战斗未统计。
+			</div>
+			<div class="row member-wrap" v-for="member in clan.members" :tag="member.tag">
+				<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
+					<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">{{ member.name }}</div>
+				</div>
+				<div style="width: 100%; background-color: #ffe; border: solid 1px #ddb; margin-bottom: 15px;">
+					<div style="margin-left: 5px;">
+						部落战统计
+					</div>
+					<div>
+						<canvas id="myChart" width="400" height="100"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="data/data.js"></script>
+		<script type="text/babel">
+'use strict';
+$(document).ready(function() {
+	console.log(data.clan.members[0]);
+
+	document.title = data.clan.name;
+	var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+	link.href = data.clan.badge.image;
+	var app = new Vue({
+		el: '#app',
+		data: {
+			clan: data.clan,
+			war_log: data.war_log,
+		},
+	});
+	$('.member-wrap').each((_, wrap) => {
+		data.clan.members.forEach((member) => {
+			if (member.tag == wrap.getAttribute('tag')) {
+				var marks = [];
+				data.war_log.forEach((war) => {
+					var cardsEarned = 0;
+					var wins = 0;
+					war.participants.forEach((participant) => {
+						if (participant.tag == member.tag) {
+							cardsEarned = participant.cardsEarned;
+							wins = participant.wins;
+						}
+					});
+					marks.push([cardsEarned, wins]);
+				});
+				marks.reverse();
+				console.log(marks);
+				var ctx = $(wrap).find('#myChart')[0].getContext('2d');
+				var myChart = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: marks.map((_, idx) => { return idx + 1; }),
+						datasets: [{
+							label: '获得卡牌',
+							data: marks.map(([cardsEarned, wins]) => { return cardsEarned; }),
+							backgroundColor: marks.map(([cardsEarned, wins]) => {
+								if (wins == 0)
+									return 'rgba(0, 0, 0, .1)';
+								else
+									return 'rgba(0, 255, 0, .1)';
+							}),
+							borderWidth: 2
+						}]
+					},
+					options: {
+						legend: {
+							display: false
+						},
+						scales: {
+							yAxes: [{
+								ticks: {
+									beginAtZero: true,
+									max: 1700
+								}
+							}]
+						}
+					}
+				});
+			}
+		});
+	});
+});
+		</script>
+	</body>
+</html>
