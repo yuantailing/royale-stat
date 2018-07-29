@@ -47,7 +47,7 @@ def history_local():
             ts.append(t)
 
     member_struct = {
-        'tag': str,
+        'tag': type(u''),
         'trophies': int,
         'donations': int,
         'donationsReceived': int,
@@ -73,7 +73,6 @@ def history_local():
     def read(filename):
         with open(filename) as f:
             data = json.load(f)
-        print(data.keys())
         return cleanup(data, {
             'members': [member_struct],
         })
