@@ -40,10 +40,10 @@ def history_local():
             t2fn[int(m.group(1))] = os.path.join('history', filename)
     all_t = sorted(t2fn.keys())
     ts = list()
-    for t in all_t:
+    for t in reversed(all_t):
         if t < time.time() - 86400 * 14:
             continue
-        if len(ts) == 0 or t > ts[-1] + 9.5 * 60:
+        if len(ts) == 0 or t < ts[-1] - 29.5 * 60:
             ts.append(t)
 
     member_struct = {
@@ -56,7 +56,10 @@ def history_local():
 
     def cleanup(d, target):
         if isinstance(target, type):
-            assert isinstance(d, target)
+            goal = target
+            if goal is float:
+                goal = (float, int)
+            assert isinstance(d, goal)
         else:
             assert type(d) is type(target)
             if isinstance(target, dict):
@@ -90,7 +93,5 @@ if __name__ == '__main__':
         'history': history_local(),
         'war_log': war_log(),
     }
-    with open(os.path.join('www', 'data', 'data.js'), 'w') as f:
-        f.write('/**/;var data = ')
+    with open(os.path.join('www', 'data', 'data.json'), 'w') as f:
         json.dump(data, f)
-        f.write(';')
