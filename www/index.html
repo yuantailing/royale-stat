@@ -7,6 +7,14 @@
 		<title>RoyaleAPI</title>
 		<link rel="shortcut icon" href="favicon.ico">
 		<link rel="stylesheet" href="static/css/bootstrap.min.css">
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-74678501-3"></script>
+		<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'UA-74678501-3');
+		</script>
 		<script src="https://unpkg.com/jquery@3.3.1/dist/jquery.min.js"></script>
 		<script src="https://unpkg.com/vue@2.5.16/dist/vue.min.js"></script>
 		<script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
@@ -17,7 +25,7 @@
 			<div class="row">
 				<div class="col">
 					<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
-					<p>数据更新时间：{{ Math.ceil((new Date()).getTime() / 1000 - now) }} 秒前</p>
+					<p>数据更新时间：{{ Math.ceil(agent_now - now) }} 秒前</p>
 					<p>
 						部落战统计说明：
 						1) <span style="color: #0a0;">绿色</span>为战斗日胜利，<span style="color: #aa0;">黄色</span>为失败，灰色为没打战斗日；
@@ -27,15 +35,36 @@
 					</p>
 					<p>
 						捐赠统计说明：
-						1) <span style="color: #0a0;">绿色</span>填充区域为捐赠数量，<span style="color: #00a;">蓝色</span>线条为接受捐赠数量；
+						1) <span style="color: #0a0;">绿色</span>填充区域为捐赠数量，<span style="color: #00a;">蓝色</span>线条为接受捐赠数量，<span style="color: #a00;">红色</span>线条为奖杯数；
 						2) 横坐标 0 表示现在，-7 表示 7 天前。
 					</p>
 					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎提 issue。</p>
 				</div>
 			</div>
-			<div class="member-wrap" v-for="member in clan.members" :tag="member.tag">
+			<div class="clan-wrap">
 				<div class="row">
 					<div style="width: 100%; background-color: #edf; border: solid 1px #dbf; border-bottom-style: none;">
+						<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
+							<b>{{ clan.name }}</b>
+							（{{ clan.memberCount }} 人）
+							<span style="float: right;">{{ clan.score }} 杯</span>
+						</div>
+					</div>
+				</div>
+				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
+					<div class="col-md-12 col-lg-6">
+						<div style="margin-left: 10px;">活跃人数统计（即将推出）</div>
+						<div><canvas id="war-chart" width="400" height="160"></canvas></div>
+					</div>
+					<div class="col-md-12 col-lg-6">
+						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
+						<div><canvas id="donation-chart" width="400" height="170"></canvas></div>
+					</div>
+				</div>
+			</div>
+			<div class="member-wrap" v-for="member in clan.members" :tag="member.tag">
+				<div class="row">
+					<div style="width: 100%; background-color: #eef; border: solid 1px #ddf; border-bottom-style: none;">
 						<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
 							<b>{{ member.name }}</b>
 							({{ member.role }})
@@ -43,21 +72,21 @@
 						</div>
 					</div>
 				</div>
-				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
+				<div class="row" style="margin-bottom: 15px; border: solid 1px #ddf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">部落战统计</div>
 						<div><canvas id="war-chart" width="400" height="160"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
-						<div style="margin-left: 10px;">捐赠统计</div>
-						<div><canvas id="donation-chart" width="400" height="170"></canvas></div>
+						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
+						<div><canvas id="donation-chart" width="400" height="172"></canvas></div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<script type="text/babel">
 'use strict';
-$(document).ready(function() {
+$(document).ready(() => {
 	$.get('data/data.json?_t=' + (new Date()).getTime(), (data) => {
 		document.title = data.clan.name;
 		var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
@@ -68,6 +97,12 @@ $(document).ready(function() {
 				now: data.now,
 				clan: data.clan,
 				war_log: data.war_log,
+				agent_now: (new Date()).getTime() / 1000,
+			},
+			created: function () {
+				setInterval(() => {
+					this.agent_now = (new Date()).getTime() / 1000;
+				}, 1000);
 			},
 		});
 		$('.member-wrap').each((_, wrap) => {
@@ -128,7 +163,8 @@ $(document).ready(function() {
 							}
 						}
 					});
-					var num_day = 7;
+
+					// member donation statistics
 					var coords = [];
 					data.history.forEach(({time, clan}) => {
 						clan.members.forEach((his) => {
@@ -138,58 +174,123 @@ $(document).ready(function() {
 									delta,
 									his.donations,
 									his.donationsReceived,
+									his.trophies,
 								]);
 							}
 						});
 					});
 					ctx = $(wrap).find('#donation-chart')[0].getContext('2d');
-					myChart = new Chart(ctx, {
-						type: 'scatter',
-						data: {
-							datasets: [{
-									showLine: true,
-									label: '捐赠',
-									data: coords.map(([delta, donations, donationsReceived]) => {
-										return { x: delta, y: donations, };
-									}),
-									borderWidth: 1,
-									borderColor: 'rgba(0, 255, 0, .5)',
-									backgroundColor: 'rgba(0, 255, 0, .3)',
-									pointRadius: 0
-								}, {
-									showLine: true,
-									label: '接受捐赠',
-									data: coords.map(([delta, donations, donationsReceived]) => {
-										return { x: delta, y: donationsReceived, };
-									}),
-									backgroundColor: 'rgba(0, 0, 0, 0)',
-									borderColor: 'rgba(0, 0, 255, .6)',
-									borderWidth: 1,
-									pointRadius: 0
-								}]
+					draw_donation(ctx, coords, [{
+							id: 'A',
+							ticks: {
+								beginAtZero: true,
+								max: 1250,
+								stepSize: 250,
+							},
+						}, {
+							id: 'B',
+							position: 'right',
+							gridLines: {
+								display: false,
+							},
+							ticks: {
+								min: 3000,
+								max: 5000,
+								stepSize: 400,
+							},
 						},
-						options: {
-							scales: {
-								xAxes: [{
-									ticks: {
-										min: -7,
-										max: 0,
-										stepSize: 1
-									}
-								}],
-								yAxes: [{
-									ticks: {
-										beginAtZero: true,
-										max: 1300,
-										stepSize: 200
-									}
-								}]
-							}
-						}
-					});
+					]);
 				}
 			});
 		});
+
+		// clan donation statistics
+		var coords = [];
+		data.history.forEach(({time, clan}) => {
+					var delta = -(data.now - time) / 86400;
+					coords.push([
+						delta,
+						clan.donations,
+						clan.donations,
+						clan.score,
+					]);
+		});
+		var ctx = $('.clan-wrap').find('#donation-chart')[0].getContext('2d');
+		draw_donation(ctx, coords, [{
+				id: 'A',
+				ticks: {
+					beginAtZero: true,
+					max: 25000,
+					stepSize: 5000,
+				},
+			}, {
+				id: 'B',
+				position: 'right',
+				gridLines: {
+					display: false,
+				},
+				ticks: {
+					min: 37000,
+					max: 42000,
+					stepSize: 1000,
+				},
+			},
+		]);
+
+		function draw_donation(ctx, coords, yAxes) {
+			var myChart = new Chart(ctx, {
+				type: 'scatter',
+				data: {
+					datasets: [{
+							showLine: true,
+							label: '捐赠',
+							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
+								return { x: delta, y: donations, };
+							}),
+							yAxisID: 'A',
+							borderWidth: 1,
+							borderColor: 'rgba(0, 255, 0, .5)',
+							backgroundColor: 'rgba(0, 255, 0, .3)',
+							pointRadius: 0,
+						}, {
+							showLine: true,
+							label: '接受捐赠',
+							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
+								return { x: delta, y: donationsReceived, };
+							}),
+							yAxisID: 'A',
+							backgroundColor: 'rgba(0, 0, 0, 0)',
+							borderColor: 'rgba(0, 0, 255, .6)',
+							borderWidth: 1,
+							pointRadius: 0,
+						}, {
+							showLine: true,
+							label: '杯数',
+							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
+								return { x: delta, y: trophies, };
+							}),
+							yAxisID: 'B',
+							backgroundColor: 'rgba(0, 0, 0, 0)',
+							borderColor: 'rgba(255, 0, 0, .6)',
+							borderWidth: 1,
+							pointRadius: 0,
+						}],
+				},
+				options: {
+					scales: {
+						xAxes: [{
+							ticks: {
+								min: -8,
+								max: 0,
+								stepSize: 1,
+							},
+						}],
+						yAxes: yAxes,
+					},
+				},
+			});
+		}
+
 	});
 });
 		</script>

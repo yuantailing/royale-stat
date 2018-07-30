@@ -51,7 +51,6 @@ def history_local():
         'trophies': int,
         'donations': int,
         'donationsReceived': int,
-        'donationsPercent': float,
     }
 
     def cleanup(d, target):
@@ -77,6 +76,8 @@ def history_local():
         with open(filename) as f:
             data = json.load(f)
         return cleanup(data, {
+            'score': int,
+            'donations': int,
             'members': [member_struct],
         })
 
