@@ -20,7 +20,7 @@
 					<p>数据更新时间：{{ Math.ceil((new Date()).getTime() / 1000 - now) }} 秒前</p>
 					<p>
 						部落战统计说明：
-						1) <span style="color: #0a0;">绿色</span>为战斗日胜利，灰色为未打或失败；
+						1) <span style="color: #0a0;">绿色</span>为战斗日胜利，<span style="color: #aa0;">黄色</span>为失败，灰色为没打战斗日；
 						2) 柱的高度是集卡日收集卡牌数量；
 						3) 最右侧的是最近战斗；
 						4) 未统计正在进行的战斗。
@@ -35,7 +35,7 @@
 			</div>
 			<div class="member-wrap" v-for="member in clan.members" :tag="member.tag">
 				<div class="row">
-					<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
+					<div style="width: 100%; background-color: #edf; border: solid 1px #dbf; border-bottom-style: none;">
 						<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
 							<b>{{ member.name }}</b>
 							({{ member.role }})
@@ -43,14 +43,14 @@
 						</div>
 					</div>
 				</div>
-				<div class="row" style="border: solid 1px #ddb; margin-bottom: 15px;">
+				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">部落战统计</div>
-						<div><canvas id="war-chart" width="400" height="120"></canvas></div>
+						<div><canvas id="war-chart" width="400" height="160"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">捐赠统计</div>
-						<div><canvas id="donation-chart" width="400" height="120"></canvas></div>
+						<div><canvas id="donation-chart" width="400" height="170"></canvas></div>
 					</div>
 				</div>
 			</div>
@@ -76,14 +76,16 @@ $(document).ready(function() {
 					var marks = [];
 					data.war_log.forEach((war) => {
 						var cardsEarned = 0;
+						var battlesPlayed = 0;
 						var wins = 0;
 						war.participants.forEach((participant) => {
 							if (participant.tag == member.tag) {
 								cardsEarned = participant.cardsEarned;
+								battlesPlayed = participant.battlesPlayed;
 								wins = participant.wins;
 							}
 						});
-						marks.push([cardsEarned, wins]);
+						marks.push([cardsEarned, battlesPlayed, wins]);
 					});
 					marks.reverse();
 					var ctx = $(wrap).find('#war-chart')[0].getContext('2d');
@@ -94,13 +96,15 @@ $(document).ready(function() {
 							datasets: [{
 								label: '获得卡牌',
 								data: marks.map(([cardsEarned, wins]) => { return cardsEarned; }),
-								backgroundColor: marks.map(([cardsEarned, wins]) => {
-									if (wins == 0)
+								backgroundColor: marks.map(([cardsEarned, battlesPlayed, wins]) => {
+									if (battlesPlayed == 0)
 										return 'rgba(0, 0, 0, .2)';
+									else if (wins == 0)
+										return 'rgba(255, 255, 0, .4)';
 									else
-										return 'rgba(0, 255, 0, .2)';
+										return 'rgba(0, 255, 0, .3)';
 								}),
-								borderWidth: 2
+								borderWidth: 1
 							}]
 						},
 						options: {
@@ -108,16 +112,17 @@ $(document).ready(function() {
 								display: false
 							},
 							scales: {
+								xAxes: [{
+									ticks: {
+										display: false,
+										stepSize: 1
+									}
+								}],
 								yAxes: [{
 									ticks: {
 										beginAtZero: true,
 										max: 1700,
 										stepSize: 300
-									}
-								}],
-								xAxes: [{
-									ticks: {
-										display: false
 									}
 								}]
 							}
@@ -147,7 +152,9 @@ $(document).ready(function() {
 									data: coords.map(([delta, donations, donationsReceived]) => {
 										return { x: delta, y: donations, };
 									}),
-									backgroundColor: 'rgba(0, 255, 0, .2)',
+									borderWidth: 1,
+									borderColor: 'rgba(0, 255, 0, .5)',
+									backgroundColor: 'rgba(0, 255, 0, .3)',
 									pointRadius: 0
 								}, {
 									showLine: true,
@@ -157,7 +164,7 @@ $(document).ready(function() {
 									}),
 									backgroundColor: 'rgba(0, 0, 0, 0)',
 									borderColor: 'rgba(0, 0, 255, .6)',
-									borderWidth: 2,
+									borderWidth: 1,
 									pointRadius: 0
 								}]
 						},
@@ -166,7 +173,8 @@ $(document).ready(function() {
 								xAxes: [{
 									ticks: {
 										min: -7,
-										max: 0
+										max: 0,
+										stepSize: 1
 									}
 								}],
 								yAxes: [{
