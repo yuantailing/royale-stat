@@ -32,27 +32,25 @@
 					</p>
 					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎提 issue。</p>
 				</div>
-			<div>
-			<div class="row member-wrap" v-for="member in clan.members" :tag="member.tag">
-				<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
-					<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
-						<b>{{ member.name }}</b>
-						({{ member.role }})
-						<span style="float: right;">{{ member.trophies }} 杯</span>
+			</div>
+			<div class="member-wrap" v-for="member in clan.members" :tag="member.tag">
+				<div class="row">
+					<div style="width: 100%; background-color: #ffd; border: solid 1px #ddb;">
+						<div style="margin: 3px 10px 3px 10px; font-family: Microsoft YaHei;">
+							<b>{{ member.name }}</b>
+							({{ member.role }})
+							<span style="float: right;">{{ member.trophies }} 杯</span>
+						</div>
 					</div>
 				</div>
-				<div style="width: 100%; background-color: #ffe; border: solid 1px #ddb; margin-bottom: 15px;">
-					<div style="margin-left: 5px;">
-						部落战统计
+				<div class="row" style="border: solid 1px #ddb; margin-bottom: 15px;">
+					<div class="col-md-12 col-lg-6">
+						<div style="margin-left: 10px;">部落战统计</div>
+						<div><canvas id="war-chart" width="400" height="120"></canvas></div>
 					</div>
-					<div>
-						<canvas id="war-chart" width="400" height="100"></canvas>
-					</div>
-					<div style="margin-left: 5px;">
-						捐赠统计
-					</div>
-					<div>
-						<canvas id="donation-chart" width="400" height="130"></canvas>
+					<div class="col-md-12 col-lg-6">
+						<div style="margin-left: 10px;">捐赠统计</div>
+						<div><canvas id="donation-chart" width="400" height="120"></canvas></div>
 					</div>
 				</div>
 			</div>
