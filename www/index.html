@@ -17,7 +17,6 @@ gtag('config', 'UA-74678501-3');
 		</script>
 		<script src="https://unpkg.com/jquery@3.3.1/dist/jquery.min.js"></script>
 		<script src="https://unpkg.com/vue@2.5.16/dist/vue.min.js"></script>
-		<script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
 		<script src="static/js/Chart.min.js"></script>
 	</head>
 	<body>
@@ -84,10 +83,10 @@ gtag('config', 'UA-74678501-3');
 				</div>
 			</div>
 		</div>
-		<script type="text/babel">
+		<script>
 'use strict';
-$(document).ready(() => {
-	$.get('data/data.json?_t=' + (new Date()).getTime(), (data) => {
+$(document).ready(function () {
+	$.get('data/data.json?_t=' + (new Date()).getTime(), function (data) {
 		document.title = data.clan.name;
 		var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
 		link.href = data.clan.badge.image;
@@ -100,20 +99,20 @@ $(document).ready(() => {
 				agent_now: (new Date()).getTime() / 1000,
 			},
 			created: function () {
-				setInterval(() => {
+				setInterval(function () {
 					this.agent_now = (new Date()).getTime() / 1000;
 				}, 1000);
 			},
 		});
-		$('.member-wrap').each((_, wrap) => {
-			data.clan.members.forEach((member) => {
+		$('.member-wrap').each(function (_, wrap) {
+			data.clan.members.forEach(function (member) {
 				if (member.tag == wrap.getAttribute('tag')) {
 					var marks = [];
-					data.war_log.forEach((war) => {
+					data.war_log.forEach(function (war) {
 						var cardsEarned = 0;
 						var battlesPlayed = 0;
 						var wins = 0;
-						war.participants.forEach((participant) => {
+						war.participants.forEach(function (participant) {
 							if (participant.tag == member.tag) {
 								cardsEarned = participant.cardsEarned;
 								battlesPlayed = participant.battlesPlayed;
@@ -127,11 +126,13 @@ $(document).ready(() => {
 					var myChart = new Chart(ctx, {
 						type: 'bar',
 						data: {
-							labels: marks.map((_, idx) => { return idx + 1; }),
+							labels: marks.map(function (_, idx) { return idx + 1; }),
 							datasets: [{
 								label: '获得卡牌',
-								data: marks.map(([cardsEarned, wins]) => { return cardsEarned; }),
-								backgroundColor: marks.map(([cardsEarned, battlesPlayed, wins]) => {
+								data: marks.map(function (a) { var cardsEarned = a[0]; return cardsEarned; }),
+								backgroundColor: marks.map(function (a) {
+									var battlesPlayed = a[1];
+									var wins = a[2];
 									if (battlesPlayed == 0)
 										return 'rgba(0, 0, 0, .2)';
 									else if (wins == 0)
@@ -166,10 +167,10 @@ $(document).ready(() => {
 
 					// member donation statistics
 					var coords = [];
-					data.history.forEach(({time, clan}) => {
-						clan.members.forEach((his) => {
+					data.history.forEach(function (o) {
+						o.clan.members.forEach(function (his) {
 							if (member.tag == his.tag) {
-								var delta = -(data.now - time) / 86400;
+								var delta = -(data.now - o.time) / 86400;
 								coords.push([
 									delta,
 									his.donations,
@@ -206,14 +207,14 @@ $(document).ready(() => {
 
 		// clan donation statistics
 		var coords = [];
-		data.history.forEach(({time, clan}) => {
-					var delta = -(data.now - time) / 86400;
-					coords.push([
-						delta,
-						clan.donations,
-						clan.donations,
-						clan.score,
-					]);
+		data.history.forEach(function (o) {
+			var delta = -(data.now - o.time) / 86400;
+			coords.push([
+				delta,
+				o.clan.donations,
+				o.clan.donations,
+				o.clan.score,
+			]);
 		});
 		var ctx = $('.clan-wrap').find('#donation-chart')[0].getContext('2d');
 		draw_donation(ctx, coords, [{
@@ -244,8 +245,8 @@ $(document).ready(() => {
 					datasets: [{
 							showLine: true,
 							label: '捐赠',
-							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
-								return { x: delta, y: donations, };
+							data: coords.map(function (a) {
+								return { x: a[0], y: a[1], };
 							}),
 							yAxisID: 'A',
 							borderWidth: 1,
@@ -255,8 +256,8 @@ $(document).ready(() => {
 						}, {
 							showLine: true,
 							label: '接受捐赠',
-							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
-								return { x: delta, y: donationsReceived, };
+							data: coords.map(function (a) {
+								return { x: a[0], y: a[2], };
 							}),
 							yAxisID: 'A',
 							backgroundColor: 'rgba(0, 0, 0, 0)',
@@ -266,8 +267,8 @@ $(document).ready(() => {
 						}, {
 							showLine: true,
 							label: '杯数',
-							data: coords.map(([delta, donations, donationsReceived, trophies]) => {
-								return { x: delta, y: trophies, };
+							data: coords.map(function (a) {
+								return { x: a[0], y: a[3], };
 							}),
 							yAxisID: 'B',
 							backgroundColor: 'rgba(0, 0, 0, 0)',
