@@ -53,7 +53,7 @@ gtag('config', 'UA-74678501-3');
 				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">活跃人数统计（即将推出）</div>
-						<div><canvas id="war-chart" width="400" height="160"></canvas></div>
+						<!--div><canvas id="war-chart" width="400" height="160"></canvas></div-->
 					</div>
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
@@ -99,8 +99,9 @@ $(document).ready(function () {
 				agent_now: (new Date()).getTime() / 1000,
 			},
 			created: function () {
+				var self = this;
 				setInterval(function () {
-					this.agent_now = (new Date()).getTime() / 1000;
+					self.agent_now = (new Date()).getTime() / 1000;
 				}, 1000);
 			},
 		});
@@ -231,8 +232,8 @@ $(document).ready(function () {
 					display: false,
 				},
 				ticks: {
-					min: 37000,
-					max: 42000,
+					min: 38000,
+					max: 43000,
 					stepSize: 1000,
 				},
 			},
