@@ -31,8 +31,10 @@ def war_log():
     return api(url)
 
 
-def history_local():
-    t2fn = dict()
+def history_local(now, clan_now):
+    t2fn = {
+        int(now): None,
+    }
     r = re.compile(r'^clan-(\d+).json$')
     for filename in os.listdir('history'):
         m = r.match(filename)
@@ -73,6 +75,8 @@ def history_local():
         return d
 
     def read(filename):
+        if filename is None:
+            return clan_now
         with open(filename) as f:
             data = json.load(f)
         return cleanup(data, {
@@ -88,11 +92,11 @@ def history_local():
 
 
 if __name__ == '__main__':
-    data = {
-        'now': time.time(),
-        'clan': clan(),
-        'history': history_local(),
-        'war_log': war_log(),
-    }
+    data = dict(
+        now=time.time(),
+    )
+    data['clan'] = clan()
+    data['war_log'] = war_log()
+    data['history'] = history_local(data['now'], data['clan'])
     with open(os.path.join('www', 'data', 'data.json'), 'w') as f:
         json.dump(data, f)

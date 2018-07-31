@@ -34,7 +34,7 @@ gtag('config', 'UA-74678501-3');
 					</p>
 					<p>
 						捐赠统计说明：
-						1) <span style="color: #0a0;">绿色</span>填充区域为捐赠数量，<span style="color: #00a;">蓝色</span>线条为接受捐赠数量，<span style="color: #a00;">红色</span>线条为奖杯数；
+						1) <span style="color: #0a0;">绿色</span>为捐赠数量，<span style="color: #00a;">蓝线</span>为接受捐赠数量，<span style="color: #a00;">红线</span>为奖杯数；
 						2) 横坐标 0 表示现在，-7 表示 7 天前。
 					</p>
 					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎提 issue。</p>
@@ -74,7 +74,7 @@ gtag('config', 'UA-74678501-3');
 				<div class="row" style="margin-bottom: 15px; border: solid 1px #ddf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">部落战统计</div>
-						<div><canvas id="war-chart" width="400" height="160"></canvas></div>
+						<div><canvas id="war-chart" width="400" height="172"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
@@ -127,7 +127,13 @@ $(document).ready(function () {
 					var myChart = new Chart(ctx, {
 						type: 'bar',
 						data: {
-							labels: marks.map(function (_, idx) { return idx + 1; }),
+							labels: marks.map(function (a, idx) {
+								var battlesPlayed = a[1];
+								var wins = a[2];
+								if (!battlesPlayed) return 'X';
+								else if (!wins) return '负';
+								else return '胜';
+							}),
 							datasets: [{
 								label: '获得卡牌',
 								data: marks.map(function (a) { var cardsEarned = a[0]; return cardsEarned; }),
@@ -151,7 +157,6 @@ $(document).ready(function () {
 							scales: {
 								xAxes: [{
 									ticks: {
-										display: false,
 										stepSize: 1
 									}
 								}],
