@@ -37,7 +37,12 @@ gtag('config', 'UA-74678501-3');
 						1) <span style="color: #0a0;">绿色</span>为捐赠数量，<span style="color: #00a;">蓝线</span>为接受捐赠数量，<span style="color: #a00;">红线</span>为奖杯数；
 						2) 横坐标 0 表示现在，-7 表示 7 天前。
 					</p>
-					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎提 issue。</p>
+					<p>
+						活跃人数说明：
+						1) <span style="color: #0a0;">8h 活跃人数</span>是此前 8h 内，奖杯、捐赠、接受捐赠至少有一项发生变化的人数 ；
+						2) <span style="color: #00a;">24h 活跃人数</span>同理。
+					</p>
+					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎搭建其它部落的统计，也欢迎提 issue。</p>
 				</div>
 			</div>
 			<div class="clan-wrap">
@@ -52,12 +57,12 @@ gtag('config', 'UA-74678501-3');
 				</div>
 				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
-						<div style="margin-left: 10px;">活跃人数统计（即将推出）</div>
-						<!--div><canvas id="war-chart" width="400" height="160"></canvas></div-->
+						<div style="margin-left: 10px;">活跃人数统计</div>
+						<div><canvas id="war-chart" width="400" height="172"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
 						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
-						<div><canvas id="donation-chart" width="400" height="170"></canvas></div>
+						<div><canvas id="donation-chart" width="400" height="172"></canvas></div>
 					</div>
 				</div>
 			</div>
@@ -87,6 +92,7 @@ gtag('config', 'UA-74678501-3');
 'use strict';
 $(document).ready(function () {
 	$.get('data/data.json?_t=' + (new Date()).getTime(), function (data) {
+		window.data = data;
 		document.title = data.clan.name;
 		var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
 		link.href = data.clan.badge.image;
@@ -298,6 +304,102 @@ $(document).ready(function () {
 			});
 		}
 
+		// 活跃人数统计
+		var live_settings = [
+			{
+				duration: 24 * 3600 + 600,
+				label: '24h',
+				color: 'blue',
+			}, {
+				duration: 8 * 3600 + 600,
+				label: '8h',
+				color: 'green',
+			}, {
+				duration: 3 * 3600 + 600,
+				label: '3h',
+				color: 'red',
+			},
+		];
+		data.history.forEach(function (tail, idx) {
+			tail.live_num = live_settings.map(function (setting) {
+				var head_id = idx;
+				while (head_id > 0 && data.history[head_id - 1].time >= tail.time - setting.duration)
+					head_id--;
+				var head = data.history[head_id];
+				var live_num = 0;
+				tail.clan.members.forEach(function (member) {
+					var tag = member.tag;
+					var origin = null;
+					head.clan.members.forEach(function (member) {
+						if (member.tag == tag)
+							origin = member;
+					});
+					if (origin != null) {
+						if (
+							member.trophies != origin.trophies ||
+							member.donations != 0 && member.donations != origin.donations ||
+							member.donationsReceived != 0 && member.donationsReceived != origin.donationsReceived
+						)
+							return live_num += 1;
+					}
+				});
+				return live_num;
+			});
+			console.log(tail.live_num);
+		});
+
+		var ctx = $('.clan-wrap').find('#war-chart')[0].getContext('2d');
+		new Chart(ctx, {
+			type: 'scatter',
+			data: {
+				/*datasets: [{
+						showLine: true,
+						label: '捐赠',
+						data: coords.map(function (a) {
+							return { x: a[0], y: a[1], };
+						}),
+						yAxisID: 'A',
+						borderWidth: 1,
+						borderColor: 'rgba(0, 255, 0, .5)',
+						backgroundColor: 'rgba(0, 255, 0, .3)',
+						pointRadius: 0,
+					}],*/
+				datasets: live_settings.map(function (setting, i) {
+					return {
+						showLine: true,
+						label: setting.label,
+						data: data.history.map(function (o) {
+							return {
+								x: -(data.now - o.time) / 86400,
+								y: o.live_num[i],
+							};
+						}),
+						borderWidth: 1,
+						borderColor: setting.color,
+						backgroundColor: 'transparent',
+						pointRadius: 0,
+					};
+				}),
+			},
+			options: {
+				scales: {
+					xAxes: [{
+						ticks: {
+							min: -8,
+							max: 0,
+							stepSize: 1,
+						},
+					}],
+					yAxes: [{
+						ticks: {
+							min: 0,
+							max: 50,
+							stepSize: 10,
+						},
+					}],
+				},
+			},
+		});
 	});
 });
 		</script>

@@ -47,6 +47,7 @@ def history_local(now, clan_now):
             continue
         if len(ts) == 0 or t < ts[-1] - 29.5 * 60:
             ts.append(t)
+    ts = reversed(ts)
 
     member_struct = {
         'tag': type(u''),
