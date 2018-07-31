@@ -39,8 +39,8 @@ gtag('config', 'UA-74678501-3');
 					</p>
 					<p>
 						活跃人数说明：
-						1) <span style="color: #0a0;">8h 活跃人数</span>是此前 8h 内，奖杯、捐赠、接受捐赠至少有一项发生变化的人数 ；
-						2) <span style="color: #00a;">24h 活跃人数</span>同理。
+						1) <span style="color: #00a;">8h 活跃人数</span>是此前 8h 内，奖杯、捐赠、接受捐赠至少有一项发生变化的人数 ；
+						2) <span style="color: #a00;">24h 活跃人数</span>同理。
 					</p>
 					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎搭建其它部落的统计，也欢迎提 issue。</p>
 				</div>
@@ -57,11 +57,11 @@ gtag('config', 'UA-74678501-3');
 				</div>
 				<div class="row" style="margin-bottom: 15px; border: solid 1px #dbf; border-top-style: none;">
 					<div class="col-md-12 col-lg-6">
-						<div style="margin-left: 10px;">活跃人数统计</div>
+						<div style="margin-left: 10px;">活跃人数变化</div>
 						<div><canvas id="war-chart" width="400" height="172"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
-						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
+						<div style="margin-left: 10px;">捐赠统计 & 奖杯变化</div>
 						<div><canvas id="donation-chart" width="400" height="172"></canvas></div>
 					</div>
 				</div>
@@ -82,7 +82,7 @@ gtag('config', 'UA-74678501-3');
 						<div><canvas id="war-chart" width="400" height="172"></canvas></div>
 					</div>
 					<div class="col-md-12 col-lg-6">
-						<div style="margin-left: 10px;">捐赠统计 & 杯数变化</div>
+						<div style="margin-left: 10px;">捐赠统计 & 奖杯变化</div>
 						<div><canvas id="donation-chart" width="400" height="172"></canvas></div>
 					</div>
 				</div>
@@ -158,20 +158,20 @@ $(document).ready(function () {
 						},
 						options: {
 							legend: {
-								display: false
+								display: false,
 							},
 							scales: {
 								xAxes: [{
 									ticks: {
 										stepSize: 1
-									}
+									},
 								}],
 								yAxes: [{
 									ticks: {
 										beginAtZero: true,
 										max: 1700,
 										stepSize: 300
-									}
+									},
 								}]
 							}
 						}
@@ -278,7 +278,7 @@ $(document).ready(function () {
 							pointRadius: 0,
 						}, {
 							showLine: true,
-							label: '杯数',
+							label: '奖杯',
 							data: coords.map(function (a) {
 								return { x: a[0], y: a[3], };
 							}),
@@ -309,15 +309,15 @@ $(document).ready(function () {
 			{
 				duration: 24 * 3600 + 600,
 				label: '24h',
-				color: 'blue',
+				color: 'red',
 			}, {
 				duration: 8 * 3600 + 600,
 				label: '8h',
-				color: 'green',
+				color: 'blue',
 			}, {
-				duration: 3 * 3600 + 600,
-				label: '3h',
-				color: 'red',
+				duration: 4 * 3600 + 600,
+				label: '4h',
+				color: 'green',
 			},
 		];
 		data.history.forEach(function (tail, idx) {
@@ -352,18 +352,6 @@ $(document).ready(function () {
 		new Chart(ctx, {
 			type: 'scatter',
 			data: {
-				/*datasets: [{
-						showLine: true,
-						label: '捐赠',
-						data: coords.map(function (a) {
-							return { x: a[0], y: a[1], };
-						}),
-						yAxisID: 'A',
-						borderWidth: 1,
-						borderColor: 'rgba(0, 255, 0, .5)',
-						backgroundColor: 'rgba(0, 255, 0, .3)',
-						pointRadius: 0,
-					}],*/
 				datasets: live_settings.map(function (setting, i) {
 					return {
 						showLine: true,
