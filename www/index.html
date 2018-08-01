@@ -66,6 +66,11 @@ gtag('config', 'UA-74678501-3');
 					</div>
 				</div>
 			</div>
+			<div class="row" id="timeout-tip">
+				<div style="width: 100%; background-color: #fdd; border: solid 1px #fbb; margin-bottom: 15px; padding: 10px;">
+					<span style="margin-left: 10px;">下面的图表较多，渲染速度较慢，请稍候...</span>
+				</div>
+			</div>
 			<div class="member-wrap" v-for="member in clan.members" :tag="member.tag">
 				<div class="row">
 					<div style="width: 100%; background-color: #eef; border: solid 1px #ddf; border-bottom-style: none;">
@@ -111,111 +116,114 @@ $(document).ready(function () {
 				}, 1000);
 			},
 		});
-		$('.member-wrap').each(function (_, wrap) {
-			data.clan.members.forEach(function (member) {
-				if (member.tag == wrap.getAttribute('tag')) {
-					var marks = [];
-					data.war_log.forEach(function (war) {
-						var cardsEarned = 0;
-						var battlesPlayed = 0;
-						var wins = 0;
-						war.participants.forEach(function (participant) {
-							if (participant.tag == member.tag) {
-								cardsEarned = participant.cardsEarned;
-								battlesPlayed = participant.battlesPlayed;
-								wins = participant.wins;
-							}
+		setTimeout(function () {
+			$('.member-wrap').each(function (_, wrap) {
+				data.clan.members.forEach(function (member) {
+					if (member.tag == wrap.getAttribute('tag')) {
+						var marks = [];
+						data.war_log.forEach(function (war) {
+							var cardsEarned = 0;
+							var battlesPlayed = 0;
+							var wins = 0;
+							war.participants.forEach(function (participant) {
+								if (participant.tag == member.tag) {
+									cardsEarned = participant.cardsEarned;
+									battlesPlayed = participant.battlesPlayed;
+									wins = participant.wins;
+								}
+							});
+							marks.push([cardsEarned, battlesPlayed, wins]);
 						});
-						marks.push([cardsEarned, battlesPlayed, wins]);
-					});
-					marks.reverse();
-					var ctx = $(wrap).find('#war-chart')[0].getContext('2d');
-					var myChart = new Chart(ctx, {
-						type: 'bar',
-						data: {
-							labels: marks.map(function (a, idx) {
-								var battlesPlayed = a[1];
-								var wins = a[2];
-								if (!battlesPlayed) return 'X';
-								else if (!wins) return '负';
-								else return '胜';
-							}),
-							datasets: [{
-								label: '获得卡牌',
-								data: marks.map(function (a) { var cardsEarned = a[0]; return cardsEarned; }),
-								backgroundColor: marks.map(function (a) {
+						marks.reverse();
+						var ctx = $(wrap).find('#war-chart')[0].getContext('2d');
+						var myChart = new Chart(ctx, {
+							type: 'bar',
+							data: {
+								labels: marks.map(function (a, idx) {
 									var battlesPlayed = a[1];
 									var wins = a[2];
-									if (battlesPlayed == 0)
-										return 'rgba(0, 0, 0, .2)';
-									else if (wins == 0)
-										return 'rgba(255, 255, 0, .4)';
-									else
-										return 'rgba(0, 255, 0, .3)';
+									if (!battlesPlayed) return 'X';
+									else if (!wins) return '负';
+									else return '胜';
 								}),
-								borderWidth: 1
-							}]
-						},
-						options: {
-							legend: {
-								display: false,
-							},
-							scales: {
-								xAxes: [{
-									ticks: {
-										stepSize: 1
-									},
-								}],
-								yAxes: [{
-									ticks: {
-										beginAtZero: true,
-										max: 1700,
-										stepSize: 300
-									},
+								datasets: [{
+									label: '获得卡牌',
+									data: marks.map(function (a) { var cardsEarned = a[0]; return cardsEarned; }),
+									backgroundColor: marks.map(function (a) {
+										var battlesPlayed = a[1];
+										var wins = a[2];
+										if (battlesPlayed == 0)
+											return 'rgba(0, 0, 0, .2)';
+										else if (wins == 0)
+											return 'rgba(255, 255, 0, .4)';
+										else
+											return 'rgba(0, 255, 0, .3)';
+									}),
+									borderWidth: 1
 								}]
-							}
-						}
-					});
-
-					// member donation statistics
-					var coords = [];
-					data.history.forEach(function (o) {
-						o.clan.members.forEach(function (his) {
-							if (member.tag == his.tag) {
-								var delta = -(data.now - o.time) / 86400;
-								coords.push([
-									delta,
-									his.donations,
-									his.donationsReceived,
-									his.trophies,
-								]);
+							},
+							options: {
+								legend: {
+									display: false,
+								},
+								scales: {
+									xAxes: [{
+										ticks: {
+											stepSize: 1
+										},
+									}],
+									yAxes: [{
+										ticks: {
+											beginAtZero: true,
+											max: 1700,
+											stepSize: 300
+										},
+									}]
+								}
 							}
 						});
-					});
-					ctx = $(wrap).find('#donation-chart')[0].getContext('2d');
-					draw_donation(ctx, coords, [{
-							id: 'A',
-							ticks: {
-								beginAtZero: true,
-								max: 1250,
-								stepSize: 250,
+
+						// member donation statistics
+						var coords = [];
+						data.history.forEach(function (o) {
+							o.clan.members.forEach(function (his) {
+								if (member.tag == his.tag) {
+									var delta = -(data.now - o.time) / 86400;
+									coords.push([
+										delta,
+										his.donations,
+										his.donationsReceived,
+										his.trophies,
+									]);
+								}
+							});
+						});
+						ctx = $(wrap).find('#donation-chart')[0].getContext('2d');
+						draw_donation(ctx, coords, [{
+								id: 'A',
+								ticks: {
+									beginAtZero: true,
+									max: 1250,
+									stepSize: 250,
+								},
+							}, {
+								id: 'B',
+								position: 'right',
+								gridLines: {
+									display: false,
+								},
+								ticks: {
+									min: 3000,
+									max: 5000,
+									stepSize: 400,
+								},
 							},
-						}, {
-							id: 'B',
-							position: 'right',
-							gridLines: {
-								display: false,
-							},
-							ticks: {
-								min: 3000,
-								max: 5000,
-								stepSize: 400,
-							},
-						},
-					]);
-				}
+						]);
+					}
+				});
 			});
-		});
+			$('#timeout-tip').hide();
+		}, 0);
 
 		// clan donation statistics
 		var coords = [];
@@ -345,7 +353,6 @@ $(document).ready(function () {
 				});
 				return live_num;
 			});
-			console.log(tail.live_num);
 		});
 
 		var ctx = $('.clan-wrap').find('#war-chart')[0].getContext('2d');
