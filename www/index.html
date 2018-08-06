@@ -143,8 +143,12 @@ $(document).ready(function () {
 									var battlesPlayed = a[1];
 									var wins = a[2];
 									if (!battlesPlayed) return 'X';
-									else if (!wins) return '负';
-									else return '胜';
+									var s = '';
+									for (var i = 0; i < wins; i++)
+										s += '胜';
+									for (; i < battlesPlayed; i++)
+										s += '负';
+									return s;
 								}),
 								datasets: [{
 									label: '获得卡牌',
@@ -223,7 +227,7 @@ $(document).ready(function () {
 				});
 			});
 			$('#timeout-tip').hide();
-		}, 0);
+		}, 1000);
 
 		// clan donation statistics
 		var coords = [];
@@ -333,23 +337,35 @@ $(document).ready(function () {
 				var head_id = idx;
 				while (head_id > 0 && data.history[head_id - 1].time >= tail.time - setting.duration)
 					head_id--;
-				var head = data.history[head_id];
 				var live_num = 0;
 				tail.clan.members.forEach(function (member) {
 					var tag = member.tag;
-					var origin = null;
-					head.clan.members.forEach(function (member) {
-						if (member.tag == tag)
-							origin = member;
-					});
-					if (origin != null) {
-						if (
-							member.trophies != origin.trophies ||
-							member.donations != 0 && member.donations != origin.donations ||
-							member.donationsReceived != 0 && member.donationsReceived != origin.donationsReceived
-						)
-							return live_num += 1;
+					var is_live = false;
+					for (var i = head_id; i < idx; i++) {
+						var j = i + 1;
+						var a = null;
+						var b = null;
+						data.history[i].clan.members.forEach(function (member) {
+							if (member.tag == tag)
+								a = member;
+						});
+						data.history[j].clan.members.forEach(function (member) {
+							if (member.tag == tag)
+								b = member;
+						});
+						if (a !== null && b !== null) {
+							if (
+								a.trophies != b.trophies ||
+								b.donations != 0 && a.donations != b.donations ||
+								b.donationsReceived != 0 && a.donationsReceived != b.donationsReceived
+							)
+								is_live = true;
+						}
+						if (is_live)
+							break;
 					}
+					if (is_live)
+						live_num++;
 				});
 				return live_num;
 			});
