@@ -355,7 +355,7 @@ $(document).ready(function () {
 						});
 						if (a !== null && b !== null) {
 							if (
-								a.trophies != b.trophies ||
+								a.trophies != b.trophies && Math.abs((a.trophies - 4000) / 2 + 4000 - b.trophies) < .51 ||
 								b.donations != 0 && a.donations != b.donations ||
 								b.donationsReceived != 0 && a.donationsReceived != b.donationsReceived
 							)
