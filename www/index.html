@@ -271,6 +271,8 @@ $(document).ready(function () {
 							label: '捐赠',
 							data: coords.map(function (a) {
 								return { x: a[0], y: a[1], };
+							}).filter(function (o) {
+								return o.x >= -8;
 							}),
 							yAxisID: 'A',
 							borderWidth: 1,
@@ -282,6 +284,8 @@ $(document).ready(function () {
 							label: '接受捐赠',
 							data: coords.map(function (a) {
 								return { x: a[0], y: a[2], };
+							}).filter(function (o) {
+								return o.x >= -8;
 							}),
 							yAxisID: 'A',
 							backgroundColor: 'rgba(0, 0, 0, 0)',
@@ -293,6 +297,8 @@ $(document).ready(function () {
 							label: '奖杯',
 							data: coords.map(function (a) {
 								return { x: a[0], y: a[3], };
+							}).filter(function (o) {
+								return o.x >= -8;
 							}),
 							yAxisID: 'B',
 							backgroundColor: 'rgba(0, 0, 0, 0)',
@@ -384,6 +390,8 @@ $(document).ready(function () {
 								x: -(data.now - o.time) / 86400,
 								y: o.live_num[i],
 							};
+						}).filter(function (o) {
+							return o.x >= -8;
 						}),
 						borderWidth: 1,
 						borderColor: setting.color,
