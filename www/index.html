@@ -100,7 +100,8 @@ function init(time_offset) {
 	$.get('data/data.json?_t=' + (new Date()).getTime(), function (data) {
 		window.data = data;
 		var effective_time = (new Date()).getTime() / 1000 + time_offset;
-		data.history = data.history.filter(function(his) { return his.time < effective_time; });
+		data.history = data.history.filter(function (his) { return his.time <= effective_time; });
+		data.war_log = data.war_log.filter(function (war) { return war.createdDate + 86400 * 2 <= effective_time; });
 		if (data.history.length > 0) {
 			data.clan = data.history[data.history.length - 1].clan;
 			effective_time = data.history[data.history.length - 1].time;
@@ -192,14 +193,14 @@ function init(time_offset) {
 								scales: {
 									xAxes: [{
 										ticks: {
-											stepSize: 1
+											stepSize: 1,
 										},
 									}],
 									yAxes: [{
 										ticks: {
 											beginAtZero: true,
 											max: 1700,
-											stepSize: 300
+											stepSize: 300,
 										},
 									}]
 								}
