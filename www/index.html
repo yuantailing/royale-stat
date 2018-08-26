@@ -101,8 +101,10 @@ function init(time_offset) {
 		window.data = data;
 		var effective_time = (new Date()).getTime() / 1000 + time_offset;
 		data.history = data.history.filter(function(his) { return his.time < effective_time; });
-		if (data.history.length > 0)
+		if (data.history.length > 0) {
 			data.clan = data.history[data.history.length - 1].clan;
+			effective_time = data.history[data.history.length - 1].time;
+		}
 		document.title = data.clan.name;
 		var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
 		link.href = data.clan.badge.image;
