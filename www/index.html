@@ -131,7 +131,10 @@ function init(time_offset) {
 					if (!(0 <= replay_hours && replay_hours <= 168)) {
 						this.replay_alert = '回溯小时数必须在 0 ~ 168 之间。';
 					} else {
-						window.location.href = window.location.pathname + '?replay=-' + replay_hours * 3600;
+						if (0 != replay_hours)
+							window.location.href = window.location.pathname + '?replay=-' + replay_hours * 3600;
+						else
+							window.location.href = window.location.pathname;
 					}
 				},
 			},
