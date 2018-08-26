@@ -24,7 +24,8 @@ gtag('config', 'UA-74678501-3');
 			<div class="row">
 				<div class="col">
 					<h2><img :width="40" :src="clan.badge.image"> {{ clan.name }}</h2>
-					<p>数据更新时间：{{ Math.ceil(agent_now - now) }} 秒前</p>
+					<p>回溯 <input type="text" v-model="replay_hours"> 小时 <input type="submit" @click="replay()"> <span style="color: #a00">{{ replay_alert }}</span></p>
+					<p>数据更新时间：{{ Math.ceil(agent_now - effective_time) }} 秒前</p>
 					<p>
 						部落战统计说明：
 						1) <span style="color: #0a0;">绿色</span>为战斗日胜利，<span style="color: #aa0;">黄色</span>为失败，灰色为没打战斗日；
@@ -95,25 +96,41 @@ gtag('config', 'UA-74678501-3');
 		</div>
 		<script>
 'use strict';
-$(document).ready(function () {
+function init(time_offset) {
 	$.get('data/data.json?_t=' + (new Date()).getTime(), function (data) {
 		window.data = data;
+		var effective_time = (new Date()).getTime() / 1000 + time_offset;
+		data.history = data.history.filter(function(his) { return his.time < effective_time; });
+		if (data.history.length > 0)
+			data.clan = data.history[data.history.length - 1].clan;
 		document.title = data.clan.name;
 		var link = document.querySelector("link[rel*='icon']") || document.createElement('link');
 		link.href = data.clan.badge.image;
 		var app = new Vue({
 			el: '#app',
 			data: {
-				now: data.now,
+				effective_time: Math.min(effective_time, data.now),
 				clan: data.clan,
 				war_log: data.war_log,
 				agent_now: (new Date()).getTime() / 1000,
+				replay_hours: '' + parseInt(-time_offset / 3600),
+				replay_alert: '',
 			},
 			created: function () {
 				var self = this;
 				setInterval(function () {
 					self.agent_now = (new Date()).getTime() / 1000;
 				}, 1000);
+			},
+			methods: {
+				replay: function () {
+					var replay_hours = parseInt(this.replay_hours || '0');
+					if (!(0 <= replay_hours && replay_hours <= 168)) {
+						this.replay_alert = '回溯小时数必须在 0 ~ 168 之间。';
+					} else {
+						window.location.href = window.location.pathname + '?replay=-' + replay_hours * 3600;
+					}
+				},
 			},
 		});
 		setTimeout(function () {
@@ -420,6 +437,15 @@ $(document).ready(function () {
 			},
 		});
 	});
+}
+$(document).ready(function () {
+	if (window.location.search) {
+		var params = window.location.search.substr(1).split('=');
+		console.assert(2 == params.length);
+		init(parseInt(params[1]));
+	} else {
+		init(0);
+	}
 });
 		</script>
 	</body>

@@ -43,9 +43,9 @@ def history_local(now, clan_now):
     all_t = sorted(t2fn.keys())
     ts = list()
     for t in reversed(all_t):
-        if t < time.time() - 86400 * 14:
+        if t < time.time() - 86400 * 10:
             continue
-        if len(ts) == 0 or t < ts[-1] - 29.5 * 60:
+        if len(ts) == 0 or t < ts[-1] - 59.5 * 60:
             ts.append(t)
     ts = reversed(ts)
 
@@ -54,6 +54,8 @@ def history_local(now, clan_now):
         'trophies': int,
         'donations': int,
         'donationsReceived': int,
+        'name': type(u''),
+        'role': type(u''),
     }
 
     def cleanup(d, target):
@@ -84,6 +86,11 @@ def history_local(now, clan_now):
             'score': int,
             'donations': int,
             'members': [member_struct],
+            'name': type(u''),
+            'badge': {
+                'image': type(u''),
+            },
+            'memberCount': int,
         })
 
     return [{
