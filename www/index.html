@@ -40,7 +40,7 @@ gtag('config', 'UA-74678501-3');
 					</p>
 					<p>
 						活跃人数说明：
-						1) <span style="color: #00a;">8h 活跃人数</span>是此前 8h 内，奖杯、捐赠、接受捐赠至少有一项发生变化的人数 ；
+						1) <span style="color: #00a;">8h 活跃人数</span>是此前 8h 内，奖杯、捐赠至少有一项发生变化的人数 ；
 						2) <span style="color: #a00;">24h 活跃人数</span>同理。
 					</p>
 					<p><a href="https://github.com/yuantailing/royale-stat">开源项目</a>，欢迎搭建其它部落的统计，也欢迎提 issue。</p>
@@ -278,8 +278,8 @@ function init(time_offset) {
 					display: false,
 				},
 				ticks: {
-					min: 38000,
-					max: 43000,
+					min: 40000,
+					max: 45000,
 					stepSize: 1000,
 				},
 			},
@@ -385,8 +385,7 @@ function init(time_offset) {
 						if (a !== null && b !== null) {
 							if (
 								a.trophies != b.trophies && Math.abs((a.trophies - 4000) / 2 + 4000 - b.trophies) < .51 ||
-								b.donations != 0 && a.donations != b.donations ||
-								b.donationsReceived != 0 && a.donationsReceived != b.donationsReceived
+								b.donations != 0 && a.donations != b.donations
 							)
 								is_live = true;
 						}
